@@ -1,0 +1,6 @@
+*.gob
+*.json
+*.html
+*.yaml
+dict
+.dictrc*
