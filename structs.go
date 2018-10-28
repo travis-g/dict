@@ -100,6 +100,10 @@ type Pronunciation struct {
 	PhoneticSpelling string   `json:"phoneticSpelling,omitempty"`
 }
 
+func (p *Pronunciation) String() string {
+	return fmt.Sprintf("/%s/ (%s)", p.PhoneticSpelling, p.PhoneticNotation)
+}
+
 // A Result is a response returned by the Oxford Dictionaries API. A result
 // should be synonymous with a word's definition in a dictionary, with all
 // associated usages.
