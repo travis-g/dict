@@ -42,9 +42,10 @@ var Templates = map[string]*template.Template{
 
 {{ range .LexicalEntries -}}
 {{ .RenderLexicalCategory }}:
-{{ range .Pronunciations }}
-- /{{ .PhoneticSpelling }}/
+
+{{ if len .Pronunciations }}{{ range .Pronunciations }}- {{ .String }}
 {{ end }}
+{{ end -}}
 {{ range .Entries -}}
 {{ range $i, $sense := .Senses -}}
 {{inc $i}}. {{if .Tags }}{{ .RenderTags }} {{end}}{{ .RenderDefinitions }}
