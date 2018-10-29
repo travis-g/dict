@@ -36,6 +36,12 @@ func makeRequest(url string) (*http.Response, error) {
 
 	res, err := Client.Do(req)
 
+	// error making request => nil response, so res can't be returned.
+	if err != nil && res == nil {
+		fmt.Fprintf(os.Stderr, "HTTP request error: %s\n", err)
+		os.Exit(1)
+	}
+
 	if res.StatusCode != 200 {
 		return res, errors.New(fmt.Sprintf("HTTP response code %d received", res.StatusCode))
 	}
