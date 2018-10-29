@@ -2,9 +2,12 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/tidwall/gjson"
 )
 
 // A CrossReference is a reference to a separate dictionary word's entry and how
@@ -86,22 +89,47 @@ type LexicalEntry struct {
 	Pronunciations  []Pronunciation `json:"pronunciations,omitempty"`
 }
 
-func (l *LexicalEntry) RenderLexicalCategory() string {
-	return strings.ToUpper(l.LexicalCategory)
-}
-
+// IsDerivative checks if a LexicalEntry is a derivative of another word.
 func (l *LexicalEntry) IsDerivative() bool {
 	return len(l.DerivativeOf) > 0
 }
 
+func (l *LexicalEntry) ShortLexicalCategory() string {
+	switch strings.ToLower(l.LexicalCategory) {
+	case "noun":
+		return "n."
+	case "adjective":
+		return "adj."
+	case "verb":
+		return "v."
+	default:
+		return ""
+	}
+}
+
+// RenderPronunciation returns a stringified pronuncation string of a provided notation.
+func (l LexicalEntry) RenderPronunciation(notation string) string {
+	data, err := json.Marshal(l)
+	if err != nil {
+		return ""
+	}
+	res := gjson.Get(string(data), fmt.Sprintf("pronunciations.#[phoneticNotation==\"%s\"].phoneticSpelling", notation))
+	return fmt.Sprintf("/%s/", res.String())
+}
+
+func (l *LexicalEntry) RenderLexicalCategory() string {
+	return strings.ToUpper(l.LexicalCategory)
+}
+
 type Pronunciation struct {
+	AudioFile        string   `json:"audioFile,omitempty"`
 	Dialects         []string `json:"dialects,omitempty"`
 	PhoneticNotation string   `json:"phoneticNotation,omitempty"`
 	PhoneticSpelling string   `json:"phoneticSpelling,omitempty"`
 }
 
 func (p *Pronunciation) String() string {
-	return fmt.Sprintf("/%s/ (%s)", p.PhoneticSpelling, p.PhoneticNotation)
+	return fmt.Sprintf("/%s/", p.PhoneticSpelling)
 }
 
 // A Result is a response returned by the Oxford Dictionaries API. A result
