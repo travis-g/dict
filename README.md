@@ -1,5 +1,7 @@
 # dict
 
+[![GitHub](https://img.shields.io/github/license/travis-g/dict.svg)](https://github.com/travis-g/dict/blob/master/LICENSE)
+
 A CLI for querying [Oxford Dictionaries'](https://www.oxforddictionaries.com/) API. Functions and features:
 
 - Look up a word's definition, synonyms, and antonyms,
