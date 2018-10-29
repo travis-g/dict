@@ -85,6 +85,10 @@ func main() {
 			Usage:       "output only the values, separated by newlines (excludes subsenses)",
 			Destination: &flagSimple,
 		},
+		cli.BoolFlag{
+			Name:  "verbose, v",
+			Usage: "(unimplemented) increase definition verbosity",
+		},
 	}
 
 	dict.Commands = []cli.Command{
