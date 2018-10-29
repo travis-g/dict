@@ -70,6 +70,14 @@ var Templates = map[string]*template.Template{
 {{ end -}}
 {{ end -}}
 `)),
+	"definition-short": template.Must(template.New("definition-short").Funcs(funcMap).Parse(`
+{{- .Word }}{{ with index .LexicalEntries 0 -}}
+{{ if .Pronunciations }} · {{ index .Pronunciations 0 }}{{else -}}{{end}}
+{{ with index .Entries 0 }}{{ with index .Senses 0 }}{{.RenderDefinitions}}
+{{ end -}}
+{{ end -}}
+{{ end -}}
+`)),
 	"synonyms": template.Must(template.New("synonym").Funcs(funcMap).Parse(`
 {{- .RenderTitle }}
 

@@ -88,7 +88,7 @@ func DefineCommand(word string) error {
 	data := result.Results[0]
 	var buf bytes.Buffer
 	if flagSimple {
-		err = Templates["definition-simple"].Execute(&buf, data)
+		err = Templates["definition-short"].Execute(&buf, data)
 	} else {
 		err = Templates["definition"].Execute(&buf, data)
 	}
