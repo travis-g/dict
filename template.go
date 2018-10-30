@@ -3,6 +3,8 @@ package main
 import (
 	"strings"
 	"text/template"
+
+	"gopkg.in/russross/blackfriday.v2"
 )
 
 // Helper function to capitalize the first character of a string
@@ -31,6 +33,9 @@ var funcMap = template.FuncMap{
 	},
 	"join": func(arr []string, sep string) string {
 		return strings.Join(arr, sep)
+	},
+	"blackfriday": func(input string) string {
+		return string(blackfriday.Run([]byte(input)))
 	},
 	"rejoin": rejoin,
 }
@@ -141,12 +146,8 @@ var Templates = map[string]*template.Template{
 	"webpage": template.Must(template.New("webpage").Funcs(funcMap).Parse(`<!DOCTYPE html>
 <html lang="en">
 {{if .Title}}<title>{{.Title}}</title>{{end}}
-<script>window.mdme = {style: 'none'}</script>
-<script src="https://unpkg.com/mdme"></script>
 <style>html{font-family:sans-serif}</style>
-<textarea>
-{{ .Content -}}
-</textarea>
+{{ blackfriday .Content -}}
 </html>
 `)),
 }

@@ -7,7 +7,7 @@ A CLI for querying [Oxford Dictionaries'](https://www.oxforddictionaries.com/) A
 - Look up a word's definition, synonyms, and antonyms,
 - Manpage-like or simplified output formats,
 - Retrive raw JSON API responses,
-- Optional HTML page generation using [MdMe](https://github.com/susam/mdme), a JavaScript library for self-rendering Markdown documents.
+- Optional HTML page generation using [Blackfriday](https://github.com/russross/blackfriday), a Markdown renderer.
 
 ## Installation
 
