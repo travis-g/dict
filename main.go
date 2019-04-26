@@ -1,19 +1,21 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/allegro/bigcache"
 	"github.com/spf13/viper"
 	"github.com/urfave/cli"
 )
 
 var (
 	Version = "unknown"
-	BaseURL = "https://od-api.oxforddictionaries.com/api/v1"
+	BaseURL = "https://od-api.oxforddictionaries.com:443/api/v2"
 	Client  *http.Client
 
 	flagRaw      = false
@@ -32,6 +34,26 @@ func loadConfig() {
 		fmt.Printf("%s\n", err)
 		os.Exit(1)
 	}
+}
+
+func loadCache(cacheDir string, cache *bigcache.BigCache) (*bigcache.BigCache, error) {
+	file, err := os.Open(cacheDir + "cache.bin")
+	if err == nil {
+		decoder := gob.NewDecoder(file)
+		err = decoder.Decode(cache)
+	}
+	file.Close()
+	return nil, err
+}
+
+func saveCache(cacheDir string, cache *bigcache.BigCache) error {
+	file, err := os.Create(cacheDir + "cache.bin")
+	if err == nil {
+		encoder := gob.NewEncoder(file)
+		encoder.Encode(cache)
+	}
+	file.Close()
+	return err
 }
 
 func setupRequestCommand(c *cli.Context) error {
@@ -67,7 +89,7 @@ func main() {
 		},
 		cli.BoolFlag{
 			Name:        "html",
-			Usage:       "wrap output in an HTML document with MdMe",
+			Usage:       "wrap output in an HTML document with Blackfriday",
 			Destination: &flagHTML,
 		},
 		// cli.BoolFlag{

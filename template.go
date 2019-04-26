@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"strings"
 	"text/template"
 
@@ -26,11 +28,23 @@ func rejoin(input, old, new string) string {
 	return strings.Join(tmp, new)
 }
 
+func funcIndent(count int, text string) string {
+	var buf bytes.Buffer
+	prefix := strings.Repeat(" ", count)
+	scan := bufio.NewScanner(strings.NewReader(text))
+	for scan.Scan() {
+		buf.WriteString(prefix + scan.Text() + "\n")
+	}
+
+	return strings.TrimRight(buf.String(), "\n")
+}
+
 // Send functions to the template rendering engine
 var funcMap = template.FuncMap{
 	"inc": func(i int) int {
 		return i + 1
 	},
+	"indent": funcIndent,
 	"join": func(arr []string, sep string) string {
 		return strings.Join(arr, sep)
 	},
@@ -145,7 +159,8 @@ var Templates = map[string]*template.Template{
 `)),
 	"webpage": template.Must(template.New("webpage").Funcs(funcMap).Parse(`<!DOCTYPE html>
 <html lang="en">
-{{if .Title}}<title>{{.Title}}</title>{{end}}
+{{ if .Title}}<title>{{.Title}}</title>
+{{ end -}}
 <style>html{font-family:sans-serif}</style>
 {{ blackfriday .Content -}}
 </html>

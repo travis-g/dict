@@ -19,7 +19,7 @@ type CrossReference struct {
 }
 
 type Derivative struct {
-	Domains   []string `json:"domains,omitempty"`
+	Domains   []Tag    `json:"domains,omitempty"`
 	ID        string   `json:"id,omitempty"`
 	Language  string   `json:"language,omitempty"`
 	Regions   []string `json:"regions,omitempty"`
@@ -29,6 +29,22 @@ type Derivative struct {
 
 func (d *Derivative) String() string {
 	return d.Text
+}
+
+type Tag struct {
+	ID   string `json:"id,omitempty"`
+	Text string `json:"text,omitempty"`
+}
+
+func (t Tag) String() string {
+	return t.Text
+}
+
+func TagsToSlice(tags []Tag) (stringSlice []string) {
+	for _, tag := range tags {
+		stringSlice = append(stringSlice, tag.String())
+	}
+	return stringSlice
 }
 
 type Entry struct {
@@ -49,8 +65,8 @@ func (e Entry) RenderVariantForms() string {
 }
 
 type Example struct {
-	Registers []string `json:"registers,omitempty"`
-	Text      string   `json:"text,omitempty" mapstructure:"text"`
+	Registers []Tag  `json:"registers,omitempty"`
+	Text      string `json:"text,omitempty" mapstructure:"text"`
 }
 
 // Render renders an example, optionally in a short form that omits registers
@@ -59,11 +75,7 @@ func (e *Example) Render() string {
 	var buf bytes.Buffer
 
 	if len(e.Registers) > 0 {
-		regs := make([]string, len(e.Registers))
-		for i, reg := range e.Registers {
-			regs[i] = reg
-		}
-		fmt.Fprintf(&buf, "`%s` ", strings.Join(regs, "`, `"))
+		fmt.Fprintf(&buf, "`%s` ", strings.Join(TagsToSlice(e.Registers), "`, `"))
 	}
 	fmt.Fprintf(&buf, "'%s'", e.Text)
 	return buf.String()
@@ -85,7 +97,7 @@ type LexicalEntry struct {
 	DerivativeOf    []Derivative    `json:"derivativeOf,omitempty"`
 	Derivatives     []Derivative    `json:"derivatives,omitempty"`
 	Entries         []Entry         `json:"entries,omitempty"`
-	LexicalCategory string          `json:"lexicalCategory,omitempty"`
+	LexicalCategory Tag             `json:"lexicalCategory,omitempty"`
 	Pronunciations  []Pronunciation `json:"pronunciations,omitempty"`
 }
 
@@ -95,7 +107,7 @@ func (l *LexicalEntry) IsDerivative() bool {
 }
 
 func (l *LexicalEntry) ShortLexicalCategory() string {
-	switch strings.ToLower(l.LexicalCategory) {
+	switch strings.ToLower(l.LexicalCategory.String()) {
 	case "noun":
 		return "n."
 	case "adjective":
@@ -118,7 +130,7 @@ func (l LexicalEntry) RenderPronunciation(notation string) string {
 }
 
 func (l *LexicalEntry) RenderLexicalCategory() string {
-	return strings.ToUpper(l.LexicalCategory)
+	return strings.ToUpper(l.LexicalCategory.String())
 }
 
 type Pronunciation struct {
@@ -129,7 +141,7 @@ type Pronunciation struct {
 }
 
 func (p *Pronunciation) String() string {
-	return fmt.Sprintf("/%s/", p.PhoneticSpelling)
+	return fmt.Sprintf("/%s/ (%s)", p.PhoneticSpelling, p.PhoneticNotation)
 }
 
 // A Result is a response returned by the Oxford Dictionaries API. A result
@@ -161,7 +173,7 @@ func (r Result) RenderTitle() string {
 func (r *Result) FilterCategory(category string) []LexicalEntry {
 	matches := make([]LexicalEntry, 0)
 	for _, x := range r.LexicalEntries {
-		if strings.ToLower(x.LexicalCategory) == strings.ToLower(category) {
+		if strings.ToLower(x.LexicalCategory.String()) == strings.ToLower(category) {
 			matches = append(matches, x)
 		}
 	}
@@ -219,12 +231,12 @@ type Sense struct {
 	CrossReferenceMarkers []string         `json:"crossReferenceMarkers,omitempty"`
 	CrossReferences       []CrossReference `json:"crossReferences,omitempty"`
 	Definitions           []string         `json:"definitions,omitempty"`
-	Domains               []string         `json:"domains,omitempty"`
+	Domains               []Tag            `json:"domains,omitempty"`
 	Examples              []Example        `json:"examples,omitempty" mapstructure:"examples"`
 	ID                    string           `json:"id,omitempty"`
 	Notes                 []interface{}    `json:"notes,omitempty"`
 	Regions               []string         `json:"regions,omitempty"`
-	Registers             []string         `json:"registers,omitempty"`
+	Registers             []Tag            `json:"registers,omitempty"`
 	ShortDefinitions      []string         `json:"short_definitions,omitempty"`
 	Subsenses             []Sense          `json:"subsenses,omitempty" mapstructure:"subsenses"`
 	Synonyms              []ThesaurusEntry `json:"synonyms,omitempty" mapstructure:"synonyms"`
@@ -298,7 +310,7 @@ func (s *Sense) RenderDomains() string {
 	if len(s.Domains) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("`%s`", strings.Join(s.Domains, "`, `"))
+	return fmt.Sprintf("`%s`", strings.Join(TagsToSlice(s.Domains), "`, `"))
 }
 
 func (s Sense) RenderExamples() string {
@@ -313,7 +325,7 @@ func (s Sense) RenderRegisters() string {
 	if len(s.Registers) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("`%s`", strings.Join(s.Registers, "`, `"))
+	return fmt.Sprintf("`%s`", strings.Join(TagsToSlice(s.Registers), "`, `"))
 }
 
 func (s *Sense) RenderSynonyms() string {
@@ -335,8 +347,8 @@ func (s Sense) RenderTags(filters ...string) string {
 func (s *Sense) Tags(filters ...string) []string {
 	var tags []string
 	tags = append(tags, s.Regions...)
-	tags = append(tags, s.Domains...)
-	tags = append(tags, s.Registers...)
+	tags = append(tags, TagsToSlice(s.Domains)...)
+	tags = append(tags, TagsToSlice(s.Registers)...)
 	for _, filter := range filters {
 		tags = Filter(tags, func(s string) bool {
 			return s != filter

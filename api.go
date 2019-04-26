@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -30,6 +29,7 @@ func makeRequest(url string) (*http.Response, error) {
 		panic(err)
 	}
 	req.Header = map[string][]string{
+		"Accept":  []string{"application/json"},
 		"app_id":  []string{appID},
 		"app_key": []string{appKey},
 	}
@@ -43,7 +43,11 @@ func makeRequest(url string) (*http.Response, error) {
 	}
 
 	if res.StatusCode != 200 {
-		return res, errors.New(fmt.Sprintf("HTTP response code %d received", res.StatusCode))
+		switch res.StatusCode {
+		// TODO(travis-g): add more cases for human-friendly HTTP error notifications
+		default:
+			return res, fmt.Errorf("HTTP response code %d received", res.StatusCode)
+		}
 	}
 
 	if err != nil {
@@ -55,10 +59,10 @@ func makeRequest(url string) (*http.Response, error) {
 
 func DefineCommand(word string) error {
 	var (
-		urlPattern = "%s/entries/en/%s/regions=%s"
+		urlPattern = "%s/entries/%s/%s?fields=definitions,domains,examples,pronunciations,registers,etymologies"
 	)
 
-	url := fmt.Sprintf(urlPattern, BaseURL, strings.ToLower(word), viper.GetString("region"))
+	url := fmt.Sprintf(urlPattern, BaseURL, viper.GetString("region"), strings.ToLower(word))
 
 	res, err := makeRequest(url)
 	if err != nil {
@@ -123,10 +127,10 @@ func DefineCommand(word string) error {
 
 func SynonymCommand(word string) error {
 	var (
-		urlPattern = "%s/entries/en/%s/synonyms;antonyms"
+		urlPattern = "%s/thesaurus/%s/%s?fields=synonyms,antonyms"
 	)
 
-	url := fmt.Sprintf(urlPattern, BaseURL, strings.ToLower(word))
+	url := fmt.Sprintf(urlPattern, BaseURL, viper.GetString("region"), strings.ToLower(word))
 
 	res, err := makeRequest(url)
 	if err != nil {
@@ -178,10 +182,10 @@ func SynonymCommand(word string) error {
 
 func AntonymCommand(word string) error {
 	var (
-		urlPattern = "%s/entries/en/%s/synonyms;antonyms"
+		urlPattern = "%s/thesaurus/%s/%s?fields=synonyms%%2Cantonyms"
 	)
 
-	url := fmt.Sprintf(urlPattern, BaseURL, strings.ToLower(word))
+	url := fmt.Sprintf(urlPattern, BaseURL, viper.GetString("region"), strings.ToLower(word))
 
 	res, err := makeRequest(url)
 	if err != nil {
