@@ -95,7 +95,7 @@ func DefineCommand(word string) error {
 
 	// result.SplitResultsByHomograph()
 
-	data := result.Results[0]
+	data := result
 	var buf bytes.Buffer
 	if flagSimple {
 		err = Templates["definition-short"].Execute(&buf, data)
@@ -108,7 +108,7 @@ func DefineCommand(word string) error {
 
 	if flagHTML {
 		page := HTMLOutput{
-			Title:   data.Word,
+			Title:   data.Results[0].Word,
 			Content: buf.String(),
 		}
 		// Reset the buffer to clear the original output

@@ -57,8 +57,9 @@ var funcMap = template.FuncMap{
 // Templates is the global templates used to render API results.
 var Templates = map[string]*template.Template{
 	"definition": template.Must(template.New("definition").Funcs(funcMap).Parse(`
-{{- .RenderTitle }}
+{{- (index .Results 0).RenderTitle }}
 
+{{ range .Results -}}
 {{ range .LexicalEntries -}}
 {{ .RenderLexicalCategory }}:
 
@@ -75,6 +76,7 @@ var Templates = map[string]*template.Template{
 {{ range .Examples }}      - {{ .Render }}
 {{ end }}
 {{ end -}}{{ else }}
+{{ end -}}
 {{ end -}}
 {{ end -}}
 {{ end -}}
